@@ -21,7 +21,7 @@ export default function ProductFilter({
         <div className="space-y-2">
           <Button
             variant={selectedCategory === "" ? "default" : "outline"}
-            className="w-full justify-start"
+            className="w-full justify-start cursor-pointer"
             onClick={() => onCategoryChange("")}
           >
             All Products
@@ -31,7 +31,7 @@ export default function ProductFilter({
             <Button
               key={category}
               variant={selectedCategory === category ? "default" : "outline"}
-              className="w-full justify-start"
+              className="w-full justify-start cursor-pointer"
               onClick={() => onCategoryChange(category)}
             >
               {category}

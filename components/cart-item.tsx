@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Minus, Plus, X } from "lucide-react";
+import { Minus, Plus, Trash, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CartItem as CartItemType } from "@/types";
 import { useCartStore } from "@/lib/store";
@@ -61,7 +61,12 @@ export default function CartItem({ item }: CartItemProps) {
             className="h-7 w-7"
             onClick={handleDecrement}
           >
-            <Minus className="h-3 w-3" />
+            {item.quantity > 1 ? (
+              <Minus className="h-3 w-3" />
+            ) : (
+              <Trash className="h-3 w-3 text-red-500" />
+            )}{" "}
+            {/* تغییر آیکون */}
           </Button>
           <span className="w-10 text-center">{item.quantity}</span>
           <Button

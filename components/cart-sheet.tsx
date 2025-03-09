@@ -30,7 +30,7 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
           <SheetTitle>Shopping Cart</SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-col h-full justify-between">
+        <div className="flex flex-col h-full justify-between mb-4 mx-4">
           <div className="py-6 overflow-y-auto">
             {items.length === 0 ? (
               <div className="text-center py-12">
@@ -50,7 +50,7 @@ export default function CartSheet({ open, onOpenChange }: CartSheetProps) {
               <Separator />
               <div className="flex justify-between font-medium">
                 <span>Total ({totalItems} items)</span>
-                <span>{totalPrice.toLocaleString()} Toman</span>
+                <span>{totalPrice.toLocaleString()} $</span>
               </div>
 
               <div className="flex flex-col gap-2">

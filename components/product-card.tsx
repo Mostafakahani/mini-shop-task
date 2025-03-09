@@ -7,6 +7,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 // import { useToast } from "@/components/ui/use-toast";
 import { useCartStore } from "@/lib/store";
+import { toast } from "react-toastify";
 
 interface ProductCardProps {
   product: Product;
@@ -18,10 +19,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const handleAddToCart = () => {
     addItem(product);
-    // toast({
-    //   title: "Product added to cart",
-    //   description: product.title,
-    // });
+    toast.success("Product added to cart");
   };
 
   return (

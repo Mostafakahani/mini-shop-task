@@ -9,9 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCartStore } from "@/lib/store";
 import CartItem from "@/components/cart-item";
-// import { useToast } from '@/components/ui/use-toast';
+import { toast } from "react-toastify";
 
-// نکته: شناسه Stripe را از متغیرهای محیطی بارگیری می‌کنیم
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
 );
@@ -19,7 +18,6 @@ const stripePromise = loadStripe(
 export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  //   const { toast } = useToast();
 
   const items = useCartStore((state) => state.items);
   const totalItems = useCartStore((state) => state.getTotalItems());
@@ -34,10 +32,10 @@ export default function CheckoutPage() {
     postalCode: "",
     phone: "",
   });
-
-  // اگر سبد خرید خالی باشد، کاربر به صفحه محصولات هدایت می‌شود
   if (items.length === 0) {
-    router.push("/products");
+    if (typeof window !== "undefined") {
+      router.push("/products");
+    }
     return null;
   }
 
@@ -52,7 +50,6 @@ export default function CheckoutPage() {
     try {
       setLoading(true);
 
-      // ارسال درخواست به API پرداخت
       const response = await axios.post("/api/checkout", {
         items,
         customerInfo: formData,
@@ -60,33 +57,22 @@ export default function CheckoutPage() {
 
       const stripe = await stripePromise;
 
-      // هدایت کاربر به صفحه پرداخت Stripe
       if (stripe) {
         const result = await stripe.redirectToCheckout({
           sessionId: response.data.id,
         });
 
-        // if (error) {
-        //   toast({
-        //     title: "خطا در پرداخت",
-        //     description: error.message,
-        //     variant: "destructive"
-        //   });
-        // }
         if (result.error) {
           console.error(result.error);
           setLoading(false);
+          toast.error("Payment error");
         } else {
-          clearCart(); // پاک کردن سبد خرید در صورت موفقیت
+          clearCart();
         }
       }
     } catch (error) {
       console.error("Error during checkout:", error);
-      //   toast({
-      //     title: "خطا در پرداخت",
-      //     description: "متأسفانه در پردازش پرداخت خطایی رخ داد. لطفاً دوباره تلاش کنید.",
-      //     variant: "destructive"
-      //   });
+      toast.error("Payment error");
     } finally {
       setLoading(false);
     }
@@ -94,20 +80,20 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">تکمیل سفارش</h1>
+      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>اطلاعات ارسال</CardTitle>
+              <CardTitle>Shipping Information</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label htmlFor="name" className="text-sm font-medium">
-                      نام و نام خانوادگی
+                      Full Name
                     </label>
                     <Input
                       id="name"
@@ -119,7 +105,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="email" className="text-sm font-medium">
-                      ایمیل
+                      Email
                     </label>
                     <Input
                       id="email"
@@ -134,7 +120,7 @@ export default function CheckoutPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="address" className="text-sm font-medium">
-                    آدرس
+                    Address
                   </label>
                   <Input
                     id="address"
@@ -148,7 +134,7 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label htmlFor="city" className="text-sm font-medium">
-                      شهر
+                      City
                     </label>
                     <Input
                       id="city"
@@ -160,7 +146,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="postalCode" className="text-sm font-medium">
-                      کد پستی
+                      Postal Code
                     </label>
                     <Input
                       id="postalCode"
@@ -174,7 +160,7 @@ export default function CheckoutPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="phone" className="text-sm font-medium">
-                    شماره تماس
+                    Phone Number
                   </label>
                   <Input
                     id="phone"
@@ -190,7 +176,7 @@ export default function CheckoutPage() {
                   className="w-full mt-4"
                   disabled={loading}
                 >
-                  {loading ? "در حال پردازش..." : "پرداخت"}
+                  {loading ? "Processing..." : "Pay"}
                 </Button>
               </form>
             </CardContent>
@@ -200,7 +186,7 @@ export default function CheckoutPage() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>خلاصه سفارش</CardTitle>
+              <CardTitle>Order Summary</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -210,16 +196,16 @@ export default function CheckoutPage() {
 
                 <div className="border-t pt-4 mt-4 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>تعداد کالاها:</span>
-                    <span>{totalItems} عدد</span>
+                    <span>Items Count:</span>
+                    <span>{totalItems} items</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>هزینه ارسال:</span>
-                    <span>رایگان</span>
+                    <span>Shipping Cost:</span>
+                    <span>Free</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg pt-2">
-                    <span>جمع کل:</span>
-                    <span>{totalPrice.toLocaleString()} تومان</span>
+                    <span>Total:</span>
+                    <span>{totalPrice.toLocaleString()} $</span>
                   </div>
                 </div>
               </div>
