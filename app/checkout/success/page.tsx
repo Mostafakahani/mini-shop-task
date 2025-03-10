@@ -6,20 +6,44 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
 import { Suspense } from "react";
+import axios from "axios";
+import { useCartStore } from "@/lib/store";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [sessionId, setSessionId] = useState<string | null>(null);
-
+  // const [sessionId, setSessionId] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const clearCart = useCartStore((state) => state.clearCart);
   useEffect(() => {
     const session_id = searchParams.get("session_id");
-    setSessionId(session_id);
+    const order_id = searchParams.get("order_id");
 
-    if (!session_id) {
+    // setSessionId(session_id);
+    setOrderId(order_id);
+
+    if (!session_id || !order_id) {
       router.push("/products");
+      return;
     }
-  }, [searchParams, router]);
+
+    // Update payment status
+    const updatePaymentStatus = async () => {
+      try {
+        await axios.post("/api/payment/update-status", {
+          orderId: order_id,
+          status: "completed",
+          sessionId: session_id,
+        });
+        console.log("Payment status updated successfully");
+      } catch (error) {
+        console.error("Error updating payment status:", error);
+      }
+    };
+
+    updatePaymentStatus();
+    clearCart();
+  }, [searchParams, router, clearCart]);
 
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -33,9 +57,9 @@ function SuccessContent() {
             Thank you for your purchase. Your order has been processed
             successfully.
           </p>
-          {sessionId && (
+          {orderId && (
             <p className="text-center text-sm text-muted-foreground">
-              Order ID: {sessionId.slice(-8)}
+              Order ID: {orderId}
             </p>
           )}
           <div className="flex justify-center pt-4">

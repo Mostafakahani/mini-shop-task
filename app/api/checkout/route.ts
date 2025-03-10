@@ -21,12 +21,12 @@ interface CustomerInfo {
 export const POST = async (request: Request) => {
   try {
     const body = await request.json();
-    const { items, customerInfo } = body as {
+    const { items, customerInfo, orderId } = body as {
       items: CartItem[];
       customerInfo: CustomerInfo;
+      orderId: string;
     };
 
-    // ایجاد آیتم‌های Stripe
     const lineItems = items.map((item: CartItem) => ({
       price_data: {
         currency: "usd",
@@ -35,21 +35,21 @@ export const POST = async (request: Request) => {
           images: [item.image],
           description: item.description.substring(0, 255),
         },
-        unit_amount: Math.round(item.price * 100), // تبدیل به سنت
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
     }));
 
-    // ایجاد جلسه پرداخت Stripe
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
       success_url: `${request.headers.get(
         "origin"
-      )}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      )}/checkout/success?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId}`,
       cancel_url: `${request.headers.get("origin")}/checkout`,
       metadata: {
+        orderId,
         customerName: customerInfo.name,
         customerEmail: customerInfo.email,
         customerAddress: customerInfo.address,

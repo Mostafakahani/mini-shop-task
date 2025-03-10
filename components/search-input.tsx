@@ -19,6 +19,7 @@ export default function SearchInput({ onSearch }: SearchInputProps) {
     <form onSubmit={handleSubmit} className="flex gap-2">
       <div className="relative flex-grow">
         <Input
+          data-testid="search-input"
           type="text"
           placeholder="Search for products..."
           value={query}

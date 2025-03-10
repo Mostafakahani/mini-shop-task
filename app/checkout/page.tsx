@@ -49,31 +49,55 @@ export default function CheckoutPage() {
 
     try {
       setLoading(true);
+      const orderId = `order_${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 7)}`;
+
+      await axios.post("/api/payment/save", {
+        orderId,
+        customerInfo: formData,
+        products: items.map((item) => ({
+          id: item.id,
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        totalAmount: totalPrice,
+        paymentStatus: "pending",
+        paymentMethod: "stripe",
+        timestamp: new Date().toISOString(),
+      });
 
       const response = await axios.post("/api/checkout", {
         items,
         customerInfo: formData,
+        orderId,
       });
 
       const stripe = await stripePromise;
+      if (!stripe) throw new Error("Stripe not initialized");
 
-      if (stripe) {
-        const result = await stripe.redirectToCheckout({
+      const result = await stripe.redirectToCheckout({
+        sessionId: response.data.id,
+      });
+
+      if (result.error) {
+        // Update payment status to failed
+        await axios.post("/api/payment/update-status", {
+          orderId,
+          status: "failed",
           sessionId: response.data.id,
         });
 
-        if (result.error) {
-          console.error(result.error);
-          setLoading(false);
-          toast.error("Payment error");
-        } else {
-          clearCart();
-        }
+        console.error(result.error);
+        setLoading(false);
+        toast.error("Payment error");
+      } else {
+        clearCart();
       }
     } catch (error) {
       console.error("Error during checkout:", error);
       toast.error("Payment error");
-    } finally {
       setLoading(false);
     }
   };

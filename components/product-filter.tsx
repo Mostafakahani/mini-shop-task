@@ -13,7 +13,7 @@ export default function ProductFilter({
   onCategoryChange,
 }: ProductFilterProps) {
   return (
-    <Card>
+    <Card data-testid="product-filter">
       <CardHeader>
         <CardTitle>Categories</CardTitle>
       </CardHeader>
@@ -23,6 +23,7 @@ export default function ProductFilter({
             variant={selectedCategory === "" ? "default" : "outline"}
             className="w-full justify-start cursor-pointer"
             onClick={() => onCategoryChange("")}
+            aria-label="All Products"
           >
             All Products
           </Button>
@@ -33,6 +34,8 @@ export default function ProductFilter({
               variant={selectedCategory === category ? "default" : "outline"}
               className="w-full justify-start cursor-pointer"
               onClick={() => onCategoryChange(category)}
+              aria-label={category}
+              data-testid={`category-${category}`}
             >
               {category}
             </Button>
